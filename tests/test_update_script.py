@@ -52,7 +52,9 @@ def test_update_runs_and_exits_zero(fake_home: Path) -> None:
 def test_update_logs_steps(fake_home: Path) -> None:
     result = _run_update(fake_home)
     assert result.returncode == 0
-    assert "[update]" in result.stdout
+    assert "pulling latest code" in result.stdout
+    assert "syncing Python dependencies" in result.stdout
+    assert "update complete" in result.stdout
 
 
 def test_update_is_idempotent(fake_home: Path) -> None:

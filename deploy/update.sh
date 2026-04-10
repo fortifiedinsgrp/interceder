@@ -48,7 +48,7 @@ else
         plist="${LAUNCH_AGENTS}/com.interceder.${name}.plist"
         if [[ -f "${plist}" ]]; then
             log "restarting com.interceder.${name}"
-            launchctl unload "${plist}" 2>/dev/null || true
+            launchctl unload "${plist}" || true
             launchctl load "${plist}"
         else
             log "WARNING: ${plist} not found — skipping com.interceder.${name}"
@@ -60,7 +60,7 @@ else
     # --------------------------------------------------------------------
     sleep 2
     log "verifying gateway health"
-    health="$(curl -sf http://127.0.0.1:7878/health 2>/dev/null || echo '{}')"
+    health="$(curl -sf http://127.0.0.1:7878/health)" || die "gateway did not respond to health check"
     if [[ "${health}" != *'"status":"ok"'* ]]; then
         die "gateway health check failed: ${health}"
     fi
