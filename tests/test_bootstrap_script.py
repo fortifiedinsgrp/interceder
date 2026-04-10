@@ -20,7 +20,6 @@ def sandbox(tmp_path: Path) -> Path:
 def _run_bootstrap(
     sandbox: Path,
     *,
-    skip_clone: bool = False,
     skip_launch: bool = True,
     extra_env: dict[str, str] | None = None,
 ) -> subprocess.CompletedProcess[str]:
@@ -63,6 +62,31 @@ def test_bootstrap_pulls_if_already_cloned(sandbox: Path) -> None:
     second = _run_bootstrap(sandbox)
     assert second.returncode == 0, second.stderr
     assert "already exists" in second.stdout.lower() or "pulling" in second.stdout.lower()
+
+
+def test_bootstrap_clones_without_claude(sandbox: Path, tmp_path: Path) -> None:
+    """When claude is missing, bootstrap should still clone and exit 0 with a warning."""
+    # Build a PATH that has git but NOT claude
+    bin_dir = tmp_path / "bin-no-claude"
+    bin_dir.mkdir()
+    git_real = Path("/usr/bin/git")
+    if not git_real.exists():
+        git_real = Path("/opt/homebrew/bin/git")
+    (bin_dir / "git").symlink_to(git_real)
+    bash_path = Path("/bin/bash")
+    if bash_path.exists():
+        (bin_dir / "bash").symlink_to(bash_path)
+
+    result = _run_bootstrap(
+        sandbox,
+        skip_launch=False,
+        extra_env={"PATH": str(bin_dir)},
+    )
+    assert result.returncode == 0, (
+        f"expected exit 0\nstdout:\n{result.stdout}\nstderr:\n{result.stderr}"
+    )
+    assert (sandbox / ".git").is_dir(), "repo should be cloned even without claude"
+    assert "claude" in result.stdout.lower(), "output should mention claude"
 
 
 def test_bootstrap_fails_without_git(sandbox: Path, tmp_path: Path) -> None:

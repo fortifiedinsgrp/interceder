@@ -20,7 +20,6 @@ die()  { printf '[interceder] ERROR: %s\n' "$*" >&2; exit 1; }
 # 1. Check bare minimum prerequisites
 # ------------------------------------------------------------------
 command -v git >/dev/null 2>&1 || die "git is not installed. Install it from https://git-scm.com/ or via: xcode-select --install"
-command -v claude >/dev/null 2>&1 || die "Claude Code CLI is not installed. Install it from https://claude.ai/claude-code"
 
 # ------------------------------------------------------------------
 # 2. Clone or update the repo
@@ -39,6 +38,11 @@ fi
 if [[ "${INTERCEDER_SKIP_LAUNCH:-0}" == "1" ]]; then
     log "skipping Claude Code launch (INTERCEDER_SKIP_LAUNCH=1)"
     log "done — repo is at ${CLONE_DIR}"
+    exit 0
+fi
+
+if ! command -v claude >/dev/null 2>&1; then
+    log "Claude Code CLI is not installed. The repo has been cloned to ${CLONE_DIR}. Install Claude Code from https://claude.ai/claude-code, then run: cd ${CLONE_DIR} && claude"
     exit 0
 fi
 
