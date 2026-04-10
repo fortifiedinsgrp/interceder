@@ -1,14 +1,12 @@
 """Tests for the Gateway REST API serving dashboard data."""
 from __future__ import annotations
 
-import time
 from pathlib import Path
 
 from fastapi.testclient import TestClient
 
-from interceder import config
 from interceder.gateway.app import build_app
-from interceder.memory import db, runner
+from interceder.memory import runner
 
 
 def _setup(tmp_interceder_home: Path) -> TestClient:

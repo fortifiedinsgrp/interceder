@@ -6,7 +6,6 @@ to the Manager.
 """
 from __future__ import annotations
 
-import json
 import logging
 from typing import Any
 
@@ -39,6 +38,7 @@ def list_workers(status: str | None = None) -> list[dict[str, Any]]:
             ).fetchall()
         return [dict(r) for r in rows]
     except Exception:
+        log.exception("list_workers failed")
         return []
     finally:
         conn.close()
@@ -54,6 +54,7 @@ def list_approvals(status: str = "pending") -> list[dict[str, Any]]:
         ).fetchall()
         return [dict(r) for r in rows]
     except Exception:
+        log.exception("list_approvals failed")
         return []
     finally:
         conn.close()
@@ -77,6 +78,7 @@ def search_memory(q: str = Query(..., min_length=1)) -> dict[str, Any]:
         ).fetchall()
         return {"results": [dict(r) for r in rows], "query": q}
     except Exception:
+        log.exception("search_memory failed")
         return {"results": [], "query": q}
     finally:
         conn.close()
@@ -91,6 +93,7 @@ def list_loops() -> list[dict[str, Any]]:
         ).fetchall()
         return [dict(r) for r in rows]
     except Exception:
+        log.exception("list_loops failed")
         return []
     finally:
         conn.close()
