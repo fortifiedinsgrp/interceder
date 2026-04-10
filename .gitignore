@@ -28,6 +28,9 @@ htmlcov/
 *.swp
 .DS_Store
 
+# Node
+node_modules/
+
 # Interceder local state (tests, sandboxes)
 /tmp/
 *.sqlite
