@@ -77,7 +77,7 @@ def test_install_bootstraps_memory_db(fake_home: Path) -> None:
         version = conn.execute(
             "SELECT MAX(version) FROM schema_meta"
         ).fetchone()[0]
-        assert version == 1
+        assert version == 5
     finally:
         conn.close()
 
