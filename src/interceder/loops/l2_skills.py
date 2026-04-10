@@ -7,8 +7,9 @@ a skill, an iteration edits the skill file and evaluates the result.
 from __future__ import annotations
 
 import logging
+import sqlite3
 
-from interceder.loops.core import KarpathyLoop, LoopConfig
+from interceder.loops.core import KarpathyLoop, LoopConfig  # noqa: F401
 
 log = logging.getLogger("interceder.loops.l2_skills")
 
@@ -24,7 +25,7 @@ class L2SkillsLoop:
         self,
         *,
         skill_dir: str,
-        conn: object,
+        conn: sqlite3.Connection,
     ) -> None:
         self._skill_dir = skill_dir
         self._conn = conn
