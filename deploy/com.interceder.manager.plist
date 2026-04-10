@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.interceder.manager</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>__INTERCEDER_UV_BIN__</string>
+        <string>run</string>
+        <string>--project</string>
+        <string>__INTERCEDER_REPO__</string>
+        <string>python</string>
+        <string>-m</string>
+        <string>interceder</string>
+        <string>manager</string>
+    </array>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>INTERCEDER_HOME</key>
+        <string>__INTERCEDER_HOME__</string>
+    </dict>
+
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>ProcessType</key>
+    <string>Interactive</string>
+
+    <key>StandardOutPath</key>
+    <string>__INTERCEDER_HOME__/logs/manager.log</string>
+    <key>StandardErrorPath</key>
+    <string>__INTERCEDER_HOME__/logs/manager.err.log</string>
+
+    <key>WorkingDirectory</key>
+    <string>__INTERCEDER_REPO__</string>
+</dict>
+</plist>

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.interceder.gateway</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>__INTERCEDER_UV_BIN__</string>
+        <string>run</string>
+        <string>--project</string>
+        <string>__INTERCEDER_REPO__</string>
+        <string>python</string>
+        <string>-m</string>
+        <string>interceder</string>
+        <string>gateway</string>
+    </array>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>INTERCEDER_HOME</key>
+        <string>__INTERCEDER_HOME__</string>
+        <key>INTERCEDER_GATEWAY_HOST</key>
+        <string>127.0.0.1</string>
+        <key>INTERCEDER_GATEWAY_PORT</key>
+        <string>7878</string>
+    </dict>
+
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>ProcessType</key>
+    <string>Interactive</string>
+
+    <key>StandardOutPath</key>
+    <string>__INTERCEDER_HOME__/logs/gateway.log</string>
+    <key>StandardErrorPath</key>
+    <string>__INTERCEDER_HOME__/logs/gateway.err.log</string>
+
+    <key>WorkingDirectory</key>
+    <string>__INTERCEDER_REPO__</string>
+</dict>
+</plist>
