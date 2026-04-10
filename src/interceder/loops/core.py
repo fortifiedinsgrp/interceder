@@ -14,8 +14,7 @@ import logging
 import sqlite3
 import time
 import uuid
-from dataclasses import dataclass, field
-from typing import Any
+from dataclasses import dataclass
 
 log = logging.getLogger("interceder.loops.core")
 
