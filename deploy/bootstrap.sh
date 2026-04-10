@@ -47,5 +47,4 @@ if ! command -v claude >/dev/null 2>&1; then
 fi
 
 log "launching Claude Code in ${CLONE_DIR}..."
-log "Claude Code will read CLAUDE.md and guide you through the rest of the installation."
-cd "${CLONE_DIR}" && exec claude
+cd "${CLONE_DIR}" && exec claude "I just ran the Interceder bootstrap script. Please check if Interceder is installed and walk me through the setup."
