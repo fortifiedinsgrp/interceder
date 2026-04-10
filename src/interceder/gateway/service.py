@@ -8,15 +8,12 @@ from __future__ import annotations
 import logging
 import os
 import threading
-import time
-import uuid
 
 from interceder import config
 from interceder.gateway.app import build_app
-from interceder.gateway.queue import enqueue_inbox, enqueue_outbox
+from interceder.gateway.queue import enqueue_inbox
 from interceder.gateway.slack_handler import normalize_slack_event
 from interceder.memory import db, runner
-from interceder.schema import Message
 
 log = logging.getLogger("interceder.gateway")
 
@@ -55,19 +52,7 @@ def _start_slack_socket_mode(
             return
         enqueue_inbox(conn, msg)
         log.info("enqueued inbox: %s", msg.id)
-
-        # Phase 1: canned ack while Manager isn't wired yet.
-        # Phase 2 removes this — the Manager will reply via outbox.
-        ack_msg = Message(
-            id=str(uuid.uuid4()),
-            correlation_id=msg.correlation_id,
-            source="manager",
-            kind="text",
-            content="[Phase 1 stub] Message received. Manager not yet connected.",
-            metadata={"reply_channel": msg.metadata.get("slack_channel", "")},
-            created_at=int(time.time()),
-        )
-        enqueue_outbox(conn, ack_msg, inbox_id=msg.id)
+        # Manager will reply via outbox — no canned ack needed
 
     handler = SocketModeHandler(bolt_app, app_token)
 
