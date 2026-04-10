@@ -7,6 +7,7 @@ to the Manager.
 from __future__ import annotations
 
 import logging
+import time
 from typing import Any
 
 from fastapi import APIRouter, Query
@@ -94,6 +95,51 @@ def list_loops() -> list[dict[str, Any]]:
         return [dict(r) for r in rows]
     except Exception:
         log.exception("list_loops failed")
+        return []
+    finally:
+        conn.close()
+
+
+@router.get("/audit")
+def list_audit(limit: int = 100) -> list[dict[str, Any]]:
+    conn = _get_conn()
+    try:
+        rows = conn.execute(
+            "SELECT * FROM audit_log ORDER BY created_at DESC LIMIT ?",
+            (limit,),
+        ).fetchall()
+        return [dict(r) for r in rows]
+    except Exception:
+        return []
+    finally:
+        conn.close()
+
+
+@router.get("/afk/grants")
+def list_afk_grants() -> list[dict[str, Any]]:
+    conn = _get_conn()
+    try:
+        now = int(time.time())
+        rows = conn.execute(
+            "SELECT * FROM afk_grants WHERE expires_at > ? AND revoked_at IS NULL",
+            (now,),
+        ).fetchall()
+        return [dict(r) for r in rows]
+    except Exception:
+        return []
+    finally:
+        conn.close()
+
+
+@router.get("/schedules")
+def list_schedules() -> list[dict[str, Any]]:
+    conn = _get_conn()
+    try:
+        rows = conn.execute(
+            "SELECT * FROM schedules ORDER BY next_run_at ASC"
+        ).fetchall()
+        return [dict(r) for r in rows]
+    except Exception:
         return []
     finally:
         conn.close()

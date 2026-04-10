@@ -257,6 +257,7 @@ dependencies = [
     { name = "slack-bolt" },
     { name = "slack-sdk" },
     { name = "uvicorn", extra = ["standard"] },
+    { name = "websockets" },
 ]
 
 [package.dev-dependencies]
@@ -276,6 +277,7 @@ requires-dist = [
     { name = "slack-bolt", specifier = ">=1.20" },
     { name = "slack-sdk", specifier = ">=3.33" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.32" },
+    { name = "websockets", specifier = ">=13.0" },
 ]
 
 [package.metadata.requires-dev]

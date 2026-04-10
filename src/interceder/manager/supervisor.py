@@ -1,10 +1,12 @@
-"""Manager Supervisor — Phase 2: wraps Agent SDK session + inbox drain.
+"""Manager Supervisor — Phase 3: memory archive + hot memory + recall tools.
 
 The Supervisor now:
 1. Opens the DB
-2. Creates (or accepts an injected) ManagerSession
-3. On each tick, drains inbox messages through the session
-4. Shuts down cleanly on stop()
+2. Creates a Memory instance on a separate connection
+3. Builds the system prompt with hot memory injection
+4. Creates (or accepts an injected) ManagerSession
+5. On each tick, drains inbox messages through the session with memory persistence
+6. Shuts down cleanly on stop()
 """
 from __future__ import annotations
 
@@ -13,17 +15,12 @@ import sqlite3
 
 from interceder import config
 from interceder.manager.inbox_drain import process_inbox
+from interceder.manager.prompt import assemble_system_prompt
 from interceder.manager.session import AgentSessionProtocol, ManagerSession
 from interceder.memory import db
+from interceder.memory.archive import Memory
 
 log = logging.getLogger("interceder.manager.supervisor")
-
-# Default system prompt — expanded significantly in Phase 3 with memory discipline
-_SYSTEM_PROMPT = (
-    "You are Interceder, a persistent remote assistant. "
-    "You are running as a Claude Code session on the user's Mac. "
-    "Be direct, concise, and helpful. Never be sycophantic."
-)
 
 
 class Supervisor:
@@ -36,6 +33,7 @@ class Supervisor:
         self._running = False
         self._injected_session = agent_session
         self._session: ManagerSession | None = None
+        self._memory: Memory | None = None
 
     @property
     def is_running(self) -> bool:
@@ -48,19 +46,24 @@ class Supervisor:
     def start(self) -> None:
         log.info("supervisor starting; db=%s", config.db_path())
         self._conn = db.connect(config.db_path())
+        self._memory = Memory(db.connect(config.db_path()))  # separate connection
+
+        # Build initial system prompt with hot memory
+        hot = self._memory.get_hot_memory()
+        system_prompt = assemble_system_prompt(hot_items=hot)
 
         if self._injected_session is not None:
             self._session = ManagerSession(
                 agent_session=self._injected_session,
-                system_prompt=_SYSTEM_PROMPT,
+                system_prompt=system_prompt,
             )
         else:
-            self._session = self._create_real_session()
+            self._session = self._create_real_session(system_prompt)
 
         self._running = True
         log.info("supervisor started")
 
-    def _create_real_session(self) -> ManagerSession:
+    def _create_real_session(self, system_prompt: str) -> ManagerSession:
         """Create a real Agent SDK session on the Max subscription.
 
         Falls back to a no-op stub if the SDK isn't installed or auth fails.
@@ -71,7 +74,7 @@ class Supervisor:
             real_session = ClaudeAgentSession(model=config.MANAGER_MODEL)
             return ManagerSession(
                 agent_session=real_session,
-                system_prompt=_SYSTEM_PROMPT,
+                system_prompt=system_prompt,
             )
         except ImportError:
             log.warning(
@@ -82,7 +85,7 @@ class Supervisor:
 
             return ManagerSession(
                 agent_session=StubAgentSession(model=config.MANAGER_MODEL),
-                system_prompt=_SYSTEM_PROMPT,
+                system_prompt=system_prompt,
             )
 
     def tick(self) -> None:
@@ -90,7 +93,7 @@ class Supervisor:
         if not self._running or self._conn is None or self._session is None:
             return
         try:
-            process_inbox(self._conn, self._session, limit=10)
+            process_inbox(self._conn, self._session, limit=10, memory=self._memory)
         except Exception:
             log.exception("tick error during inbox drain")
 
@@ -101,6 +104,9 @@ class Supervisor:
         if self._session is not None:
             self._session.close()
             self._session = None
+        if self._memory is not None:
+            self._memory.close()
+            self._memory = None
         if self._conn is not None:
             self._conn.close()
             self._conn = None
