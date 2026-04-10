@@ -10,11 +10,16 @@ export function WorkersPane() {
   const [workers, setWorkers] = useState<Worker[]>([])
 
   useEffect(() => {
-    fetch('/api/workers').then(r => r.json()).then(setWorkers).catch(() => {})
-    const interval = setInterval(() => {
-      fetch('/api/workers').then(r => r.json()).then(setWorkers).catch(() => {})
-    }, 5000)
-    return () => clearInterval(interval)
+    const controller = new AbortController()
+    const load = () =>
+      fetch('/api/workers', { signal: controller.signal })
+        .then(r => r.json())
+        .then(setWorkers)
+        .catch(e => { if (e.name !== 'AbortError') console.error(e) })
+
+    load()
+    const interval = setInterval(load, 5000)
+    return () => { clearInterval(interval); controller.abort() }
   }, [])
 
   return (

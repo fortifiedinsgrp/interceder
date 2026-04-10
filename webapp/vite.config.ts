@@ -14,6 +14,7 @@ export default defineConfig({
         ws: true,
       },
       '/health': 'http://127.0.0.1:7878',
+      '/api': 'http://127.0.0.1:7878',
     },
   },
 })

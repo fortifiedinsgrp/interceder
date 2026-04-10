@@ -42,7 +42,7 @@ export function ChatPane() {
 
   return (
     <div style={{
-      display: 'flex', flexDirection: 'column', height: '100vh',
+      display: 'flex', flexDirection: 'column', height: '100%',
       maxWidth: '800px', margin: '0 auto',
       fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif',
     }}>

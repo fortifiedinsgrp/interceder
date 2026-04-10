@@ -9,11 +9,17 @@ export function ApprovalsPane() {
   const [approvals, setApprovals] = useState<Approval[]>([])
 
   useEffect(() => {
-    fetch('/api/approvals').then(r => r.json()).then(setApprovals).catch(() => {})
-    const interval = setInterval(() => {
-      fetch('/api/approvals').then(r => r.json()).then(setApprovals).catch(() => {})
-    }, 3000)
-    return () => clearInterval(interval)
+    const controller = new AbortController()
+    // Approvals are time-sensitive, poll more aggressively than workers
+    const load = () =>
+      fetch('/api/approvals', { signal: controller.signal })
+        .then(r => r.json())
+        .then(setApprovals)
+        .catch(e => { if (e.name !== 'AbortError') console.error(e) })
+
+    load()
+    const interval = setInterval(load, 3000)
+    return () => { clearInterval(interval); controller.abort() }
   }, [])
 
   return (
