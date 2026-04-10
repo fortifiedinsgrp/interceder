@@ -9,7 +9,7 @@ import logging
 from contextlib import asynccontextmanager
 from typing import AsyncIterator
 
-from fastapi import FastAPI
+from fastapi import FastAPI, WebSocket
 from fastapi.responses import HTMLResponse
 
 from interceder import config
@@ -52,6 +52,15 @@ def build_app(*, slack_client: object | None = None) -> FastAPI:
             "<p>Phase 1 — Slack connected.</p>"
             "</body></html>"
         )
+
+    from interceder.gateway.ws import ws_endpoint
+
+    @app.websocket("/ws")
+    async def websocket_handler(websocket: WebSocket) -> None:
+        await ws_endpoint(websocket)
+
+    from interceder.gateway.api import router as api_router
+    app.include_router(api_router)
 
     return app
 
