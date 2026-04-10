@@ -10,7 +10,14 @@ When starting a session in this repo, check installation state:
 
 1. If `~/Library/Application Support/Interceder/` does not exist → **offer to install**: "Interceder isn't installed yet. Want me to walk you through the setup?"
 2. If it exists but services aren't running (`launchctl list | grep interceder` returns nothing) → **offer to repair**: "Interceder is installed but the services aren't running. Want me to start them?"
-3. If everything is running → operate normally.
+3. If services are running but either of these is true → **offer to update**: "Interceder is running but there's an update available (or the manager is in fallback/echo mode). Want me to update and restart?"
+   - `git fetch origin --quiet 2>/dev/null; git rev-list HEAD..origin/main --count` returns a number > 0 (commits to pull)
+   - `grep -q "echo stub" ~/Library/Application\ Support/Interceder/logs/manager.err.log 2>/dev/null` succeeds (manager fell back to echo stub)
+
+   If accepted, run: `bash deploy/update.sh` (from the repo root, which is the current working directory).
+   If declined, operate normally.
+
+4. If everything is running and up to date → operate normally.
 
 ### Install Runbook
 
