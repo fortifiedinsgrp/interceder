@@ -64,23 +64,20 @@ class Supervisor:
         log.info("supervisor started")
 
     def _create_real_session(self, system_prompt: str) -> ManagerSession:
-        """Create a real Agent SDK session on the Max subscription.
+        """Create a real Claude session via the claude CLI.
 
-        Falls back to a no-op stub if the SDK isn't installed or auth fails.
+        Falls back to the echo stub only if the claude CLI is absent.
         """
         try:
-            from claude_agent_sdk import ClaudeAgentSession  # type: ignore[import-not-found]
+            from interceder.manager.claude_session import ClaudeAgentSession
 
             real_session = ClaudeAgentSession(model=config.MANAGER_MODEL)
             return ManagerSession(
                 agent_session=real_session,
                 system_prompt=system_prompt,
             )
-        except ImportError:
-            log.warning(
-                "claude-agent-sdk not installed — using echo stub. "
-                "Install the SDK and restart to enable real Claude."
-            )
+        except RuntimeError as exc:
+            log.warning("could not create real session (%s) — using echo stub", exc)
             from tests.stubs.agent_sdk_stub import StubAgentSession
 
             return ManagerSession(
