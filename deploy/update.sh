@@ -39,19 +39,33 @@ else
 fi
 
 # --------------------------------------------------------------------
-# 4. Restart launchd services
+# 4. Re-template and reload launchd plists
 # --------------------------------------------------------------------
 if [[ "${INTERCEDER_SKIP_LAUNCHD:-0}" == "1" ]]; then
     log "skipping service restart (INTERCEDER_SKIP_LAUNCHD=1)"
 else
+    # Snapshot log size now so the echo-stub check only scans new lines.
+    log_size_before=$(wc -c < "${INTERCEDER_HOME}/logs/manager.err.log" 2>/dev/null || echo 0)
+
+    uv_bin="$(command -v uv)"
+    interceder_path="${HOME}/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"
+
     for name in gateway manager; do
-        plist="${LAUNCH_AGENTS}/com.interceder.${name}.plist"
-        if [[ -f "${plist}" ]]; then
+        src="${REPO_ROOT}/deploy/com.interceder.${name}.plist"
+        dst="${LAUNCH_AGENTS}/com.interceder.${name}.plist"
+        if [[ -f "${dst}" ]]; then
+            log "re-templating com.interceder.${name}.plist"
+            sed \
+                -e "s|__INTERCEDER_HOME__|${INTERCEDER_HOME}|g" \
+                -e "s|__INTERCEDER_REPO__|${REPO_ROOT}|g" \
+                -e "s|__INTERCEDER_UV_BIN__|${uv_bin}|g" \
+                -e "s|__INTERCEDER_PATH__|${interceder_path}|g" \
+                "${src}" > "${dst}"
             log "restarting com.interceder.${name}"
-            launchctl unload "${plist}" || true
-            launchctl load "${plist}"
+            launchctl unload "${dst}" || true
+            launchctl load "${dst}"
         else
-            log "WARNING: ${plist} not found — skipping com.interceder.${name}"
+            log "WARNING: ${dst} not found — skipping com.interceder.${name}"
         fi
     done
 
@@ -65,7 +79,8 @@ else
         die "gateway health check failed: ${health}"
     fi
 
-    if grep -q "echo stub" "${INTERCEDER_HOME}/logs/manager.err.log" 2>/dev/null; then
+    # Only check log lines written after the restart (avoid false positives from history).
+    if tail -c "+$((log_size_before + 1))" "${INTERCEDER_HOME}/logs/manager.err.log" 2>/dev/null | grep -q "echo stub"; then
         die "manager is still in echo stub mode after update — check ${INTERCEDER_HOME}/logs/manager.err.log"
     fi
 

@@ -168,6 +168,7 @@ install_launchd() {
     mkdir -p "${LAUNCH_AGENTS_DIR}"
     local uv_bin
     uv_bin="$(command -v uv)"
+    local interceder_path="${HOME}/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"
     for name in gateway manager; do
         local src="${REPO_ROOT}/deploy/com.interceder.${name}.plist"
         local dst="${LAUNCH_AGENTS_DIR}/com.interceder.${name}.plist"
@@ -176,6 +177,7 @@ install_launchd() {
             -e "s|__INTERCEDER_HOME__|${INTERCEDER_HOME}|g" \
             -e "s|__INTERCEDER_REPO__|${REPO_ROOT}|g" \
             -e "s|__INTERCEDER_UV_BIN__|${uv_bin}|g" \
+            -e "s|__INTERCEDER_PATH__|${interceder_path}|g" \
             "${src}" > "${dst}"
         # Unload if already loaded so we pick up changes on reruns.
         launchctl unload "${dst}" >/dev/null 2>&1 || true
